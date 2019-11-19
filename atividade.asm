@@ -1,0 +1,3 @@
+.data
+	#primeiro git
+.text
