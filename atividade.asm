@@ -85,7 +85,7 @@
 			move $s1, $v0
 			
 			beq $s1, $t1, addElemento
-			#beq $s1, $t2, recElemento
+			beq $s1, $t2, recElemento
 			beq $s1, $t3, impLista
 			#beq $s1, $t4, delElemento
 			beq $s1, $t5, saida
@@ -161,6 +161,23 @@
 			
 		endFor:
 			j menu
+			
+	recElemento:
+	
+		li $sp, 0
+		
+		jal inputInt
+		move $s1, $v0
+		
+		mul $s1, $s1, -4
+		
+		addu $sp, $sp, $s1
+		lw $t1, ($sp)
+		
+		move $a0, $t1
+		jal printInteger
+		
+		j menu
 		
 		
 		
