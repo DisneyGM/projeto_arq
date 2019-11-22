@@ -16,18 +16,20 @@
 	informaEscolha: .asciiz "Voce escolheu o valor de numero: "
 	informaSaida: .asciiz "\nVoce saiu do programa\n"
 	msgError: .asciiz "\nO valor informado e invalido\n\n"
+	msgMaxError: .asciiz "\nNumero maximo de elementos atingido!\n"
 	adicionou: .asciiz "\nVoce adicionou a lista o valor: "
 	informarElemento: .asciiz "\nElemento: "
 	
 	memoria: .word 12
 	
 	#padroes
-	breakLine: .asciiz "\n"
+	breakLine: .asciiz "\n"	
 	
 .text
 
 	# Configuracoes:
-	# s1 -> usado para pegar um valor qualquer para comparacao
+	# s1 -> usado para pegar um valor qualquer para comparacao ou recuperacao de dados
+	# s2 -> usado para pegar um segundo valor qualquer para comparacao ou recuperacao de dados
 	
 	# inicializa a pilha em 0
 	li $sp, 0
@@ -102,6 +104,8 @@
 	
 	# adiciona um novo elemento
 	addElemento:
+	
+		jal verificaQuantidade
 	
 		la $a0, informarElemento
 		jal printString
@@ -178,10 +182,10 @@
 		# adiciona a posicao da pilha
 		addu $sp, $sp, $s1
 		# pega o valor da pilha
-		lw $t1, ($sp)
+		lw $a1, ($sp)
 		
 		# imprime o valor pego
-		move $a0, $t1
+		move $a0, $a1
 		jal printInteger
 		
 		j menu
@@ -197,13 +201,6 @@
 		jal printString
 		j end
 		
-	# informa erro
-	valorInvalido:
-		la $a0, msgError
-		jal printString
-		
-		j menu
-		
 	# incrementa a quantidade atual de elementos
 	incrementaAtual:
 		#pega posicao do valor atual
@@ -215,6 +212,34 @@
 		# retorna o valor atual
 		sw $s1, memoria($s0)
 	
+		j menu
+	
+	# verifica se a quantidade atual e menor que a quantidade total
+	verificaQuantidade:
+		
+		li $s0, 0
+		lw $s1, memoria($s0)
+		addi $s0, $s0, 4
+		lw $s2, memoria($s0)
+		
+		beq $s1, $s2, maximoAtingido
+		
+		jr $ra
+		
+		
+	# funcoes de erros
+	
+	# informa erro
+	valorInvalido:
+		la $a0, msgError
+		jal printString
+		
+		j menu
+		
+	maximoAtingido:
+		la $a0, msgMaxError
+		jal printString
+		
 		j menu
 	
 	# funcoes privadas
