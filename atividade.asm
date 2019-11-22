@@ -14,11 +14,12 @@
 	
 	#Resposta ao usuario
 	informaEscolha: .asciiz "Voce escolheu o valor de numero: "
-	informaSaida: .asciiz "\nVoce saiu do programa\n"
+	informaSaida: .asciiz "\nVoce saiu do programa!\n"
 	msgError: .asciiz "\nO valor informado e invalido\n\n"
 	msgMaxError: .asciiz "\nNumero maximo de elementos atingido!\n"
 	adicionou: .asciiz "\nVoce adicionou a lista o valor: "
 	informarElemento: .asciiz "\nElemento: "
+	informarIndice: .asciiz "\nIndice: "
 	
 	memoria: .word 12
 	
@@ -175,6 +176,8 @@
 		# reinicia a pilha em 0
 		li $sp, 0
 		# pede o indice
+		la $a0, informarIndice
+		jal printString
 		jal inputInt
 		move $s1, $v0
 		# vai ate o numero de bytes
@@ -194,8 +197,6 @@
 		
 	# sai do programa
 	saida:
-		la $a0, breakLine
-		jal printString
 	
 		la $a0, informaSaida
 		jal printString
