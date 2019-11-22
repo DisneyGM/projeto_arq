@@ -85,9 +85,6 @@
 			
 			move $s1, $v0
 			
-			la $a0, informarElemento
-			jal printString
-			
 			beq $s1, $t1, addElemento
 			beq $s1, $t2, recElemento
 			beq $s1, $t3, impLista
@@ -105,6 +102,9 @@
 	
 	# adiciona um novo elemento
 	addElemento:
+	
+		la $a0, informarElemento
+		jal printString
 		
 		# pega o valor atual da memoria e adiciona ao atual da pilha
 		li $s0, 4
