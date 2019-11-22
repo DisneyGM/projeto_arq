@@ -17,6 +17,7 @@
 	informaSaida: .asciiz "\nVoce saiu do programa\n"
 	msgError: .asciiz "\nO valor informado e invalido\n\n"
 	adicionou: .asciiz "\nVoce adicionou a lista o valor: "
+	informarElemento: .asciiz "\nElemento: "
 	
 	memoria: .word 12
 	
@@ -83,6 +84,9 @@
 			jal inputInt
 			
 			move $s1, $v0
+			
+			la $a0, informarElemento
+			jal printString
 			
 			beq $s1, $t1, addElemento
 			beq $s1, $t2, recElemento
@@ -162,18 +166,21 @@
 		endFor:
 			j menu
 			
+	# recupera um elemento
 	recElemento:
-	
+		# reinicia a pilha em 0
 		li $sp, 0
-		
+		# pede o indice
 		jal inputInt
 		move $s1, $v0
-		
+		# vai ate o numero de bytes
 		mul $s1, $s1, -4
-		
+		# adiciona a posicao da pilha
 		addu $sp, $sp, $s1
+		# pega o valor da pilha
 		lw $t1, ($sp)
 		
+		# imprime o valor pego
 		move $a0, $t1
 		jal printInteger
 		
