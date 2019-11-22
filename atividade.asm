@@ -132,10 +132,13 @@
 		
 		li $s0, 4
 		lw $s1, memoria($s0)
-		li $s4, 0
-		mul $s4, $s1, -4
 		
-		move $sp, $s4
+		#li $s4, 0
+		#mul $s4, $s1, -4
+		#move $sp, $s4
+		
+		# inicializa para o primeiro valor
+		li $sp, -4
 		
 		li $s3, 0
 		
@@ -151,7 +154,7 @@
 			li $v0, 4
 			syscall
 			
-			addu $sp, $sp, 4
+			subu $sp, $sp, 4 #subtrai ate o valor atual
 			addi $s3, $s3, 1
 			
 			j for
