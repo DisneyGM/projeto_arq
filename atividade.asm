@@ -22,6 +22,7 @@
 	informarIndice: .asciiz "\nIndice: "
 	msgImpLista: .asciiz "\n====== Elementos da Lista ======\n"
 	msgRecuperou: .asciiz "\nVoce recuperou o elemento: "
+	msgRemoveu: .asciiz "\nVoce removeu o elemento: "
 	#padroes
 	breakLine: .asciiz "\n"	
 	separator: .asciiz " - "
@@ -289,6 +290,10 @@
 		rescrever:
 			mul $sp, $s1, -4
 			move $k0, $s1 # valor atual
+			
+			#pega o elemento atual
+			lw $s6, ($sp)
+			
 			addi $s5, $k0, 1 # proximo
 			move $k1, $s2
 			fore:
@@ -310,13 +315,22 @@
 				
 				
 			endFore:
+				# imprime valor removido
+				la $a0, msgRemoveu
+				li $v0, 4
+				syscall
 				
+				move $a0, $s6
+				li $v0, 1
+				syscall
 				# decrementa a quantidade atual de elementos
 				decrementaAtual:
 					li $s0, 4
 					lw $s1, memoria($s0)
 					subi $s1, $s1, 1
 					sw $s1, memoria($s0)
+					
+				
 					
 				jr $ra
 				
