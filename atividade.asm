@@ -3,7 +3,7 @@
 	getQuantidade: .asciiz "Informe a quantidade de elementos: "
 	
 	#funcoes de menu
-	menuAddElemento: .asciiz "\n1 - Adicionar elemento\n"
+	menuAddElemento: .asciiz "\n\n1 - Adicionar elemento\n"
 	menuRecElemento: .asciiz "2 - Recuperar elemento\n"
 	menuImpLista: .asciiz "3 - Imprimir lista\n"
 	menuDelElemento: .asciiz "4 - Deletar elemento\n"
@@ -20,11 +20,15 @@
 	adicionou: .asciiz "\nVoce adicionou a lista o valor: "
 	informarElemento: .asciiz "\nElemento: "
 	informarIndice: .asciiz "\nIndice: "
-	
-	memoria: .word 12
-	
+	msgImpLista: .asciiz "\n====== Elementos da Lista ======\n"
+	msgRecuperou: .asciiz "\nVoce recuperou o elemento: "
 	#padroes
 	breakLine: .asciiz "\n"	
+	separator: .asciiz " - "
+	
+	memoria: .word 8
+	
+	
 	
 .text
 
@@ -51,8 +55,7 @@
 		jal printString
 	
 		#pedindo quantidade de elementos
-		li $v0, 5
-		syscall
+		jal inputInt
 		
 		sw $v0, memoria($s0) #adiciona a quantidade de elementos na memoria
 		
@@ -88,10 +91,10 @@
 			
 			move $s1, $v0
 			
-			beq $s1, $t1, addElemento
-			beq $s1, $t2, recElemento
-			beq $s1, $t3, impLista
-			#beq $s1, $t4, delElemento
+			beq $s1, $t1, lblAddElemento
+			beq $s1, $t2, lblRecElemento
+			beq $s1, $t3, lblImpLista
+			beq $s1, $t4, lblDelElemento
 			beq $s1, $t5, saida
 			
 			j valorInvalido
@@ -103,13 +106,37 @@
 	
 	# funcoes do menu
 	
+	lblAddElemento:
+		jal addElemento
+		j menu
+		
+	lblRecElemento:
+		jal recElemento
+		j menu
+	lblImpLista:
+		jal impLista
+		j menu
+	lblDelElemento:
+		jal delElemento
+		j menu
+		
+	
 	# adiciona um novo elemento
 	addElemento:
 	
-		jal verificaQuantidade
+		# verifica se a quantidade atual e menor que a quantidade total
+		verificaQuantidade:
+		
+			li $s0, 0
+			lw $s1, memoria($s0)
+			addi $s0, $s0, 4
+			lw $s2, memoria($s0)
+		
+			beq $s1, $s2, maximoAtingido
 	
 		la $a0, informarElemento
-		jal printString
+		li $v0, 4
+		syscall
 		
 		# pega o valor atual da memoria e adiciona ao atual da pilha
 		li $s0, 4
@@ -123,17 +150,32 @@
 		
 		subu $sp, $sp, 4
 		
-		jal inputInt
+		li $v0, 5
+		syscall
 		move $s1, $v0
 		
 		sw $s1, ($sp)
 		
 		la $a0, adicionou
-		jal printString
-		move $a0, $s1
-		jal printInteger
+		li $v0, 4
+		syscall
 		
-		j incrementaAtual
+		move $a0, $s1
+		li $v0, 1
+		syscall
+		
+		# incrementa a quantidade atual de elementos
+		incrementaAtual:
+			#pega posicao do valor atual
+			li $s0, 4
+			# pega o valor atual
+			lw $s1, memoria($s0)
+			# incrementa
+			addi $s1, $s1, 1
+			# retorna o valor atual
+			sw $s1, memoria($s0)
+		
+		jr $ra
 		
 	# imprime a lista
 	impLista:
@@ -149,15 +191,30 @@
 		# inicializa para o primeiro valor
 		li $sp, -4
 		
-		li $s3, 0
+		li $s3, 1
+		#imprime o aviso
+		la $a0, msgImpLista
+		li $v0, 4
+		syscall
 		
 		for:
-			beq $s3, $s1, endFor
+			bgt $s3, $s1, endFor
 			
+			#imprime o indice
+			move $a0, $s3
+			li $v0, 1
+			syscall
+			
+			la $a0, separator
+			li $v0, 4
+			syscall
+			
+			# pega o elemento da lista
 			lw $t6, ($sp)
-			
+			# imprime o elemento
 			move $a0, $t6
-			jal printInteger
+			li $v0, 1
+			syscall
 			
 			la $a0, breakLine
 			li $v0, 4
@@ -169,7 +226,7 @@
 			j for
 			
 		endFor:
-			j menu
+			jr $ra
 			
 	# recupera um elemento
 	recElemento:
@@ -177,9 +234,21 @@
 		li $sp, 0
 		# pede o indice
 		la $a0, informarIndice
-		jal printString
-		jal inputInt
+		li $v0, 4
+		syscall
+		
+		li $v0, 5
+		syscall
+		
 		move $s1, $v0
+		
+		#pegar valor atual
+		li $s0, 4
+		lw $s2, memoria($s0)
+		#verifica se o indice informado esta entre 1 e o valor atual
+		bgt $s1, $s2, valorInvalido
+		blez $s1, valorInvalido
+		
 		# vai ate o numero de bytes
 		mul $s1, $s1, -4
 		# adiciona a posicao da pilha
@@ -187,11 +256,71 @@
 		# pega o valor da pilha
 		lw $a1, ($sp)
 		
+		#imprime que recuperou
+		la $a0, msgRecuperou
+		li $v0, 4
+		syscall
 		# imprime o valor pego
 		move $a0, $a1
-		jal printInteger
+		li $v0, 1
+		syscall
 		
-		j menu
+		jr $ra
+		
+	# deleta um elemento
+	delElemento:
+		
+		#pega o indice
+		la $a0, informarIndice
+		li $v0, 4
+		syscall
+		
+		li $v0, 5
+		syscall
+		move $s1, $v0
+		
+		#pegar valor atual
+		li $s0, 4
+		lw $s2, memoria($s0)
+		#verifica se o indice informado esta entre 1 e o valor atual
+		bgt $s1, $s2, valorInvalido
+		blez $s1, valorInvalido
+		
+		rescrever:
+			mul $sp, $s1, -4
+			move $k0, $s1 # valor atual
+			addi $s5, $k0, 1 # proximo
+			move $k1, $s2
+			fore:
+				bgt $k0, $k1, endFore
+				
+				# pega o proximo elemento
+				mul $sp, $s5, -4
+				lw $s4, ($sp)
+				
+				# adiciona no elemento atual
+				mul $sp, $k0, -4
+				sw $s4, ($sp)
+				
+				addi $k0, $k0, 1
+				addi $s5, $s5, 1
+				
+				j fore
+				
+				
+				
+			endFore:
+				
+				# decrementa a quantidade atual de elementos
+				decrementaAtual:
+					li $s0, 4
+					lw $s1, memoria($s0)
+					subi $s1, $s1, 1
+					sw $s1, memoria($s0)
+					
+				jr $ra
+				
+				
 		
 		
 		
@@ -201,31 +330,6 @@
 		la $a0, informaSaida
 		jal printString
 		j end
-		
-	# incrementa a quantidade atual de elementos
-	incrementaAtual:
-		#pega posicao do valor atual
-		li $s0, 4
-		# pega o valor atual
-		lw $s1, memoria($s0)
-		# incrementa
-		addi $s1, $s1, 1
-		# retorna o valor atual
-		sw $s1, memoria($s0)
-	
-		j menu
-	
-	# verifica se a quantidade atual e menor que a quantidade total
-	verificaQuantidade:
-		
-		li $s0, 0
-		lw $s1, memoria($s0)
-		addi $s0, $s0, 4
-		lw $s2, memoria($s0)
-		
-		beq $s1, $s2, maximoAtingido
-		
-		jr $ra
 		
 		
 	# funcoes de erros
